@@ -4,18 +4,33 @@ from gspread_dataframe import get_as_dataframe, set_with_dataframe
 import pandas as pd
 import datetime
 
-# --- Conexão com o Google Sheets ---
-try:
-    gc = gspread.service_account_from_dict(st.secrets["gcp_service_account"])
-    sh = gc.open("Fornecedores")
-    worksheet = sh.sheet1
-except Exception as e:
-    st.error(f"Erro ao conectar com o Google Sheets: {e}")
-    st.stop()
+# --- Conexão com o Google Sheets (usando cache para estabilidade) ---
+@st.cache_resource
+def get_connection():
+    try:
+        gc = gspread.service_account_from_dict(st.secrets["gcp_service_account"])
+        return gc
+    except Exception as e:
+        st.error(f"Erro ao conectar com as credenciais: {e}")
+        st.stop()
 
-# --- Funções para o Banco de Dados (agora usando Google Sheets) ---
+@st.cache_resource
+def get_worksheet():
+    try:
+        conn = get_connection()
+        sh = conn.open("Fornecedores")
+        return sh.sheet1
+    except Exception as e:
+        st.error(f"Erro ao conectar com a planilha 'Fornecedores': {e}")
+        st.stop()
+
+# --- Funções de manipulação de dados ---
 def buscar_fornecedores(termo_busca=""):
+    worksheet = get_worksheet()
     df = get_as_dataframe(worksheet)
+    if df.empty:
+        return []
+    
     if not termo_busca:
         return df.values.tolist()
     
@@ -23,6 +38,7 @@ def buscar_fornecedores(termo_busca=""):
     return df_filtrado.values.tolist()
 
 def adicionar_fornecedor(nome, dados_pagamento):
+    worksheet = get_worksheet()
     df = get_as_dataframe(worksheet)
     if nome in df['nome'].values:
         st.error(f"O fornecedor '{nome}' já existe.")
@@ -35,6 +51,7 @@ def adicionar_fornecedor(nome, dados_pagamento):
     return True
 
 def atualizar_fornecedor(nome_antigo, nome_novo, dados_pagamento):
+    worksheet = get_worksheet()
     df = get_as_dataframe(worksheet)
     if nome_novo != nome_antigo and nome_novo in df['nome'].values:
         st.error(f"O nome '{nome_novo}' já existe.")
@@ -47,6 +64,7 @@ def atualizar_fornecedor(nome_antigo, nome_novo, dados_pagamento):
     return True
 
 def remover_fornecedor(nome):
+    worksheet = get_worksheet()
     df = get_as_dataframe(worksheet)
     df = df[df['nome'] != nome]
     set_with_dataframe(worksheet, df)
@@ -108,7 +126,6 @@ def main():
 
     with aba_gerenciar:
         st.subheader("Gerenciar Fornecedores")
-        
         termo_busca = st.text_input("Pesquisar fornecedor:", key="search_input")
         
         if st.button("Pesquisar"):
@@ -139,4 +156,24 @@ def main():
         with col_botoes1:
             if st.button("Adicionar"):
                 if nome_novo and dados_pagamento:
-                    adicionar_
+                    adicionar_fornecedor(nome_novo, dados_pagamento)
+                else:
+                    st.error("Nome e dados de pagamento são obrigatórios!")
+        
+        with col_botoes2:
+            if st.button("Salvar Alterações"):
+                if fornecedor_selecionado and nome_novo and dados_pagamento:
+                    atualizar_fornecedor(fornecedor_selecionado, nome_novo, dados_pagamento)
+                else:
+                    st.error("Nenhum fornecedor selecionado ou campos estão vazios!")
+
+        with col_botoes3:
+            if st.button("Remover"):
+                if fornecedor_selecionado:
+                    remover_fornecedor(fornecedor_selecionado)
+                else:
+                    st.error("Selecione um fornecedor para remover.")
+
+if __name__ == '__main__':
+    main()
+
