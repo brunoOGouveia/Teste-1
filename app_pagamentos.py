@@ -80,6 +80,7 @@ def gerar_mensagem(tipo_despesa, nome_fornecedor, data_pagamento, valor, centro_
 --- Solicitação de Pagamento ---
 
 Tipo de despesa: {tipo_despesa}
+Solicitante: {solicitante}
 Data de pagamento: {data_formatada}
 Centro de custos: {centro_custos}
 Valor: {valor_formatado}
@@ -111,6 +112,8 @@ def main():
         centro_custos = st.selectbox("Centro de custos:", centros_de_custos)
 
         tipo_despesa = st.text_input("Tipo de despesa:")
+
+        solicitante = st.text_input("Solicitante:")
         
         if st.button("Gerar Mensagem"):
             if not tipo_despesa or not nome_fornecedor or not data_pagamento or not valor or not centro_custos:
@@ -176,4 +179,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
