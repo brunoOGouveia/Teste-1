@@ -72,7 +72,7 @@ def remover_fornecedor(nome):
 
 
 # --- Lógica da Aplicação ---
-def gerar_mensagem(nunero_do_pedido, tipo_despesa, solicitante, nome_fornecedor, data_pagamento, valor, centro_custos, dados_pagamento):
+def gerar_mensagem(numero_do_pedido, tipo_despesa, solicitante, nome_fornecedor, data_pagamento, valor, centro_custos, dados_pagamento):
     valor_formatado = f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     data_formatada = data_pagamento.strftime("%d / %m / %Y")
 
@@ -182,6 +182,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
