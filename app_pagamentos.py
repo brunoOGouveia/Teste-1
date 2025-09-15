@@ -72,13 +72,14 @@ def remover_fornecedor(nome):
 
 
 # --- Lógica da Aplicação ---
-def gerar_mensagem(tipo_despesa, solicitante, nome_fornecedor, data_pagamento, valor, centro_custos, dados_pagamento):
+def gerar_mensagem(nunero_do_pedido, tipo_despesa, solicitante, nome_fornecedor, data_pagamento, valor, centro_custos, dados_pagamento):
     valor_formatado = f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     data_formatada = data_pagamento.strftime("%d / %m / %Y")
 
     mensagem_final = f"""
 --- Solicitação de Pagamento ---
 
+Numero do pedido: {numero_do_pedido}
 Tipo de despesa: {tipo_despesa}
 Solicitante: {solicitante}
 Data de pagamento: {data_formatada}
@@ -100,6 +101,8 @@ def main():
     with aba_formulario:
         st.subheader("Formulário de Solicitação")
 
+        numero_do_pedido = st.text_input("Número do pedido:")
+        
         centros_de_custos = ["Obra Alphaville II", "Obra Terras Alphaville II", "Fabrica"]
         
         fornecedores_nomes = [f[0] for f in buscar_fornecedores()]
@@ -120,7 +123,7 @@ def main():
                 st.error("Todos os campos devem ser preenchidos!")
             else:
                 dados_pagamento = [f[1] for f in buscar_fornecedores() if f[0] == nome_fornecedor][0]
-                gerar_mensagem(tipo_despesa, solicitante, nome_fornecedor, data_pagamento, valor, centro_custos, dados_pagamento)
+                gerar_mensagem(numero_do_pedido, tipo_despesa, solicitante, nome_fornecedor, data_pagamento, valor, centro_custos, dados_pagamento)
         
         if st.session_state['mensagem_gerada']:
             st.subheader("Mensagem Pronta")
@@ -179,6 +182,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
